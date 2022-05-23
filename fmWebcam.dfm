@@ -102,9 +102,9 @@ object frmWebcam: TfrmWebcam
   object lblFrameRateOptions: TLabel
     Left = 9
     Top = 226
-    Width = 63
+    Width = 101
     Height = 13
-    Caption = 'FrameRate'
+    Caption = 'TargetFrameRate'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
