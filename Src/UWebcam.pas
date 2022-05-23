@@ -442,6 +442,7 @@ begin
 
   vNewFrameTime := GetTickCount;
 
+  // Counting how many frames per second
   if vNewFrameTime - fLFrameTime > 1000 then
   begin
     fLFrameTime := vNewFrameTime;
@@ -452,11 +453,12 @@ begin
   if (vNewFrameTime - fLastFrameTime) > (fFrameDistance) then
   begin
     Inc(fCurrentFrameCount);
-    TThread.Queue(nil,
-    procedure
-    begin
-      fInfoLogFn(Format('NewFrame! FrameSize [%d]', [BufferLen]));
-    end);
+    if Assigned(fInfoLogFn) then
+      TThread.Queue(nil,
+      procedure
+      begin
+        fInfoLogFn(Format('NewFrame! FrameSize [%d]', [BufferLen]));
+      end);
 
     fLastFrameTime := vNewFrameTime;
 
