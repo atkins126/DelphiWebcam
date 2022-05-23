@@ -87,7 +87,9 @@ begin
 
       vOriginal := TBitmap.Create;
       vOriginal.LoadFromStream(pStream);
-      vResized := TBitmap.Create(imWebcam.Width, imWebcam.Height);
+      vResized := TBitmap.Create;
+      vResized.Width := imWebcam.Width;
+      vResized.Height := imWebcam.Height;
 
       SmoothResize(vOriginal, vResized);
 
