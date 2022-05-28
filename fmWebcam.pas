@@ -9,7 +9,6 @@ uses
 
 type
   TfrmWebcam = class(TForm)
-    procedure cmbxFrameRateSelect(Sender: TObject);
   published
     imWebcam: TImage;
     mem: TMemo;
@@ -36,6 +35,9 @@ type
     procedure btnResumeClick(Sender: TObject);
     procedure btnUpdateDeviceListClick(Sender: TObject);
 
+    procedure cmbxFrameRateSelect(Sender: TObject);
+
+    procedure ValidateMaxLines(Sender: TObject);
     procedure UpdateAllDeviceNamesToComboBox;
     procedure UpdateWebcamState;
   strict private
@@ -65,6 +67,8 @@ procedure TfrmWebcam.FormCreate(Sender: TObject);
 var
   vFrameRate: TFrameRate;
 begin
+  mem.OnChange := ValidateMaxLines;
+
   fWebcamStateTimer := TTimer.Create(Self);
   fWebcamStateTimer.Enabled := True;
   fWebcamStateTimer.Interval := 1000;
@@ -145,6 +149,14 @@ begin
 
   lblWebcamStateValue.Caption := WEBCAMSTATENAME[fWebcam.State];
   lblWebcamStateValue.Font.Color := WEBCAMSTATECOLOR[fWebcam.State];
+end;
+
+procedure TfrmWebcam.ValidateMaxLines(Sender: TObject);
+var
+  vMemo: TMemo absolute Sender;
+begin
+  if vMemo.Lines.Count >= 100 then
+    vMemo.Clear;
 end;
 
 procedure TfrmWebcam.btnPlayClick(Sender: TObject);
