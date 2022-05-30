@@ -181,4 +181,11 @@ object frmWebcam: TfrmWebcam
     TabOrder = 7
     OnSelect = cmbxFrameRateSelect
   end
+  object memtwo: TMemo
+    Left = 680
+    Top = 304
+    Width = 305
+    Height = 89
+    TabOrder = 8
+  end
 end

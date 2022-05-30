@@ -9,6 +9,7 @@ uses
 
 type
   TfrmWebcam = class(TForm)
+    memtwo: TMemo;
   published
     imWebcam: TImage;
     mem: TMemo;
@@ -103,6 +104,11 @@ begin
       vResized.Free;
     end
   );
+
+  fWebcam.OnEventE := procedure(pEvent: Integer; pParamOne, pParamTwo: NativeInt)
+  begin
+    memtwo.Lines.Add(Format('vEventCode: %d | vParamOne: %d | vParamTwo: %d', [pEvent, pParamOne, pParamTwo]));
+  end;
 
   for vFrameRate := Low(UWebcam.TFrameRate) to High(UWebcam.TFrameRate) do
     cmbxFrameRate.Items.Add(FRAMERATESTRINGS[vFrameRate]);

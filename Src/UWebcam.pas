@@ -5,11 +5,13 @@ interface
 uses
   System.Classes,
   WinAPI.Activex, WinAPI.DirectShow9, WinAPI.Windows,
+  WinAPI.Messages,
   ComObj;
 
 type
   TInfoFn = reference to procedure(const pInfo: string);
   TOnFrame = reference to procedure(pFrame: TMemoryStream);
+  TOnEvent = reference to procedure(pEventCode: Integer; pParamOne, pParamTwo: NativeInt);
 
   TWebcamState = (wsNull, wsPlaying, wsPaused, wsStopped);
 
@@ -45,11 +47,15 @@ type
     fCOMInitialize: Boolean;
     fInfoLogFn: TInfoFn;
     fOnFrame: TOnFrame;
+    fOnEvent: TOnEvent;
+
+    fEventHandle: Hwnd;
 
     fEnum: IEnumMoniker;
     fGraph: IGraphBuilder;
     fBuild: ICaptureGraphBuilder2;
     fControl: IMediaControl;
+    fAsyncEvents: IMediaEventEx;
     fVideoWindow: IVideoWindow;
     fSampleGrabber: ISampleGrabber;
     fCB: TSampleGrabberCB;
@@ -59,6 +65,8 @@ type
     function DisplayDeviceInformation(var pMoniker: IMoniker; const pDeviceName: string): HRESULT;
     function GetState: TWebcamState;
     function GetFrameRate: Integer;
+
+    procedure OnEvent(var pMsg: TMessage);
   public
     constructor Create(pLogFn: TInfoFn; pOnFrame: TOnFrame; pCOMInitialize: Boolean = True); reintroduce;
     destructor Destroy; override;
@@ -76,12 +84,16 @@ type
     property FrameRate: Integer read GetFrameRate;
     property State: TWebcamState read GetState;
     property OnFrame: TOnFrame read fOnFrame write fOnFrame;
+    property OnEventE: TOnEvent read fOnEvent write fOnEvent;
   end;
 
 implementation
 
 uses
   System.SysUtils, System.Generics.Collections;
+
+const
+  WM_GRAPH_NOTIFY: Cardinal = WM_APP + 1;
 
 { TWebcam }
 
@@ -90,6 +102,7 @@ begin
   fInfoLogFn := pLogFn;
   fOnFrame := pOnFrame;
   fCOMInitialize := pComInitialize;
+  fEventHandle := AllocateHwnd(OnEvent);
 
   if fComInitialize then
     CoInitializeEx(nil, COINIT_MULTITHREADED);
@@ -99,6 +112,9 @@ destructor TWebcam.Destroy;
 begin
   if fCOMInitialize then
     CoUninitialize;
+  if GetState <> wsNull then
+    Self.Stop;
+  DeallocateHWnd(fEventHandle);
   inherited;
 end;
 
@@ -122,6 +138,28 @@ begin
     else
       Result := S_FALSE;
   end;
+end;
+
+procedure TWebcam.OnEvent(var pMsg: TMessage);
+var
+  vParamOne, vParamTwo: NativeInt;
+  vEvCode: Integer;
+begin
+  if fAsyncEvents = nil then
+    Exit;
+
+  if pMsg.Msg = WM_GRAPH_NOTIFY then
+    while fAsyncEvents.GetEvent(vEvCode, vParamOne, vParamTwo, 20) >= 0 do
+    begin
+      fAsyncEvents.FreeEventParams(vEvCode, vParamOne, vParamTwo);
+      if Assigned(fOnEvent) then
+        fOnEvent(vEvCode, vParamOne, vParamTwo);
+      //EC_PAUSED = 9
+      //EC_DEVICE_LOST
+      //EC_STREAM_CONTROL_STOPPED
+      //EC_STREAM_CONTROL_STARTED
+      //EC_VIDEO_SIZE_CHANGED
+    end;
 end;
 
 function TWebcam.EnumerateVideoInputDevices: HRESULT;
@@ -254,6 +292,13 @@ begin
   if vHr < 0 then
     raise Exception.Create('Error creating media control interface');
 
+  vHr := fGraph.QueryInterface(IID_IMediaEventEx, fAsyncEvents);
+
+  if vHr < 0 then
+    raise Exception.Create('Error creating media event interface');
+
+  fAsyncEvents.SetNotifyWindow(fEventHandle, WM_GRAPH_NOTIFY, NativeInt(nil));
+
   vHr := fGraph.QueryInterface(IID_IVideoWindow, fVideoWindow);
 
   if vHr < 0 then
@@ -307,7 +352,7 @@ begin
   if vHr < 0 then
     raise Exception.Create('Error setting one shot');
 
-  vHr := fGraph.AddFilter(vGrabberF, PChar('UVC Camera'));
+  vHr := fGraph.AddFilter(vGrabberF, PChar('Camera'));
 
   if vHr < 0 then
     raise Exception.Create('Error adding sample grabber');
@@ -457,7 +502,7 @@ begin
       TThread.Queue(nil,
       procedure
       begin
-        fInfoLogFn(Format('NewFrame! FrameSize [%d]', [BufferLen]));
+        fInfoLogFn(Format('NewFrame. FrameSize [%d]', [BufferLen]));
       end);
 
     fLastFrameTime := vNewFrameTime;
