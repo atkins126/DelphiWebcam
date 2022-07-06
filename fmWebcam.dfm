@@ -86,12 +86,12 @@ object frmWebcam: TfrmWebcam
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object lblDeviceList: TLabel
-    Left = 9
+  object lblVideoDeviceList: TLabel
+    Left = 8
     Top = 141
-    Width = 58
+    Width = 89
     Height = 13
-    Caption = 'DeviceList'
+    Caption = 'VideoDeviceList'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -100,7 +100,7 @@ object frmWebcam: TfrmWebcam
     ParentFont = False
   end
   object lblFrameRateOptions: TLabel
-    Left = 9
+    Left = 8
     Top = 226
     Width = 101
     Height = 13
@@ -121,7 +121,7 @@ object frmWebcam: TfrmWebcam
     TabOrder = 0
     OnClick = btnPlayClick
   end
-  object mem: TMemo
+  object memLogger: TMemo
     Left = 664
     Top = 37
     Width = 449
@@ -156,7 +156,7 @@ object frmWebcam: TfrmWebcam
     OnClick = btnResumeClick
   end
   object cmbxDevices: TComboBox
-    Left = 9
+    Left = 8
     Top = 160
     Width = 145
     Height = 21
@@ -164,7 +164,7 @@ object frmWebcam: TfrmWebcam
     TabOrder = 5
   end
   object btnUpdateDeviceList: TButton
-    Left = 9
+    Left = 8
     Top = 187
     Width = 96
     Height = 25
@@ -173,7 +173,7 @@ object frmWebcam: TfrmWebcam
     OnClick = btnUpdateDeviceListClick
   end
   object cmbxFrameRate: TComboBox
-    Left = 9
+    Left = 8
     Top = 245
     Width = 145
     Height = 21
@@ -181,11 +181,30 @@ object frmWebcam: TfrmWebcam
     TabOrder = 7
     OnSelect = cmbxFrameRateSelect
   end
-  object memtwo: TMemo
-    Left = 680
-    Top = 304
-    Width = 305
-    Height = 89
+  object memEvents: TMemo
+    Left = 664
+    Top = 224
+    Width = 450
+    Height = 169
     TabOrder = 8
+  end
+  object btnStreamCaps: TButton
+    Left = 7
+    Top = 288
+    Width = 75
+    Height = 25
+    Caption = 'StreamCaps'
+    TabOrder = 9
+    OnClick = btnStreamCapsClick
+  end
+  object cbResize: TCheckBox
+    Left = 176
+    Top = 397
+    Width = 58
+    Height = 17
+    Caption = 'Resize'
+    Checked = True
+    State = cbChecked
+    TabOrder = 10
   end
 end
